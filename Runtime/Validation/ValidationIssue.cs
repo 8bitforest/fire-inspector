@@ -1,5 +1,7 @@
 using FireInspector.Attributes;
 using FireInspector.Utils;
+using JetBrains.Annotations;
+using UnityEngine;
 
 namespace FireInspector.Validation
 {
@@ -8,7 +10,8 @@ namespace FireInspector.Validation
         public enum Severity { Info, Warning, Error }
 
         public Severity IssueSeverity { get; private set; }
-        public InspectorProperty Property { get; private set; }
+        [CanBeNull] public InspectorProperty Property { get; private set; }
+        [CanBeNull] public GameObject GameObject { get; private set; }
         public string Message { get; private set; }
 
         public static ValidationIssue Info(InspectorProperty property, string message)
@@ -17,6 +20,17 @@ namespace FireInspector.Validation
             {
                 IssueSeverity = Severity.Info,
                 Property = property,
+                GameObject = property.GameObject,
+                Message = message
+            };
+        }
+
+        public static ValidationIssue Info(GameObject gameObject, string message)
+        {
+            return new ValidationIssue
+            {
+                IssueSeverity = Severity.Info,
+                GameObject = gameObject,
                 Message = message
             };
         }
@@ -27,6 +41,17 @@ namespace FireInspector.Validation
             {
                 IssueSeverity = Severity.Warning,
                 Property = property,
+                GameObject = property.GameObject,
+                Message = message
+            };
+        }
+
+        public static ValidationIssue Warning(GameObject gameObject, string message)
+        {
+            return new ValidationIssue
+            {
+                IssueSeverity = Severity.Warning,
+                GameObject = gameObject,
                 Message = message
             };
         }
@@ -37,6 +62,17 @@ namespace FireInspector.Validation
             {
                 IssueSeverity = Severity.Error,
                 Property = property,
+                GameObject = property.GameObject,
+                Message = message
+            };
+        }
+
+        public static ValidationIssue Error(GameObject gameObject, string message)
+        {
+            return new ValidationIssue
+            {
+                IssueSeverity = Severity.Error,
+                GameObject = gameObject,
                 Message = message
             };
         }

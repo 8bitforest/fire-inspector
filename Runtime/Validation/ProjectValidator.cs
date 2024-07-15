@@ -42,11 +42,19 @@ namespace FireInspector.Validation
 
         private static void ValidateGameObject(List<ValidationIssue> issues, GameObject gameObject)
         {
-            foreach (var component in gameObject.GetComponentsInChildren<Component>(true))
+            foreach (var component in gameObject.GetComponents<Component>())
             {
-                if (component == null) continue;
+                if (component == null)
+                {
+                    issues.Add(ValidationIssue.Warning(gameObject, "GameObject contains a missing component!"));
+                    continue;
+                }
+
                 ValidateComponent(issues, component);
             }
+
+            foreach (Transform child in gameObject.transform)
+                ValidateGameObject(issues, child.gameObject);
         }
 
         private static void ValidateComponent(List<ValidationIssue> issues, Component component)

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using FireInspector.Editor.Elements;
+using FireInspector.Extensions;
 using FireInspector.Validation;
 using UnityEditor;
 using UnityEngine;
@@ -67,10 +69,19 @@ namespace FireInspector.Editor.ValidationWindow
                 foreach (var issue in _issues)
                 {
                     var issueElement = _issueTemplate.Instantiate();
-                    issueElement.Q<Label>("issueProperty").text =
-                        $"{issue.Property.ComponentName} > {issue.Property.Name}";
-                    issueElement.Q<Label>("issuePath").text = issue.Property.GetObjectPath();
+
+                    issueElement.Q<Label>("issueHeader").text = issue.GameObject.GetObjectPath();
+                    issueElement.Q<Label>("issueSubHeader").text = issue.Property != null
+                        ? $"{issue.Property?.Component.GetType().Name} > {issue.Property?.Name}"
+                        : "(Script)";
                     issueElement.Q<Label>("issueMessage").text = issue.Message;
+                    issueElement.Q<InspectorPropertyMessage>("message").Type = issue.IssueSeverity switch
+                    {
+                        ValidationIssue.Severity.Info => InspectorPropertyMessage.MessageType.Info,
+                        ValidationIssue.Severity.Warning => InspectorPropertyMessage.MessageType.Warning,
+                        ValidationIssue.Severity.Error => InspectorPropertyMessage.MessageType.Error,
+                        _ => InspectorPropertyMessage.MessageType.Info
+                    };
                     _issuesScrollView.Add(issueElement);
                 }
             }
