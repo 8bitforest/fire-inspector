@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement style="padding: 10px;">
+        <ui:Button name="validateButton" text="Validate Project" style="height: 30px;" />
+        <ui:Label text="Validation Issues:" class="header" style="margin-top: 20px;" />
+        <ui:VisualElement name="startup">
+            <FireInspector.Editor.Elements.InspectorPropertyMessage message-type="Info" message="Press 'Validate Project' to start validation." />
+        </ui:VisualElement>
+        <ui:VisualElement name="noIssues">
+            <FireInspector.Editor.Elements.InspectorPropertyMessage message-type="Success" message="No validation issues found!" />
+        </ui:VisualElement>
+        <ui:ScrollView name="issues">
+        </ui:ScrollView>
+    </ui:VisualElement>
+</ui:UXML>

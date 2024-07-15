@@ -1,0 +1,11 @@
+{
+  "name": "com.eightbitforest.fire-inspector",
+  "version": "1.0.0",
+  "displayName": "Fire Inspector",
+  "author": {
+    "name": "8-Bit Forest",
+    "email": "support@8bitforest.com",
+    "url": "8bitforest.com"
+  },
+  "type": "library"
+}

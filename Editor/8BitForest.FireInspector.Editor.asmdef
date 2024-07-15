@@ -1,0 +1,16 @@
+{
+    "name": "8BitForest.FireInspector.Editor",
+    "rootNamespace": "FireInspector",
+    "references": [
+        "GUID:144ffc592597f46c186eeb5716090fdd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
