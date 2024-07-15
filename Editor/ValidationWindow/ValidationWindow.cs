@@ -44,6 +44,7 @@ namespace FireInspector.Editor.ValidationWindow
             _noIssuesElement.style.display = DisplayStyle.None;
 
             rescanButton.clicked += ScanProject;
+            ScanProject();
         }
 
         private void ScanProject()
@@ -67,7 +68,7 @@ namespace FireInspector.Editor.ValidationWindow
                 {
                     var issueElement = _issueTemplate.Instantiate();
                     issueElement.Q<Label>("issueProperty").text =
-                        $"{issue.Property.ComponentName}.{issue.Property.Name}";
+                        $"{issue.Property.ComponentName} > {issue.Property.Name}";
                     issueElement.Q<Label>("issuePath").text = issue.Property.GetObjectPath();
                     issueElement.Q<Label>("issueMessage").text = issue.Message;
                     _issuesScrollView.Add(issueElement);

@@ -1,4 +1,6 @@
+using System;
 using System.Reflection;
+using FireInspector.Extensions;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,39 +10,39 @@ namespace FireInspector.Utils
     {
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly SerializedObject _serializedObject;
-        private readonly SerializedProperty _serializedProperty;
         private readonly GameObject _gameObject;
         private readonly Component _component;
-        private readonly FieldInfo _fieldInfo;
 
         public string ComponentName => _component.GetType().Name;
-        public string Name => _serializedProperty?.displayName ?? _fieldInfo.Name;
-        public object Value => _fieldInfo.GetValue(_component);
+        public SerializedProperty Property { get; }
+        public FieldInfo FieldInfo { get; }
+
+        public string Name => Property.displayName ?? FieldInfo.Name;
 
         public InspectorProperty(SerializedProperty property)
         {
-            _serializedProperty = property;
+            Property = property;
             _serializedObject = property.serializedObject;
-            _component = (_serializedObject.targetObject as Component)!;
-            _gameObject = _component.gameObject;
+            if (_serializedObject is not { targetObject: Component component })
+                throw new ArgumentException("SerializedObject target object is not a Component", nameof(property));
 
-            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var targetType = _component.GetType();
-            _fieldInfo = targetType.GetField(property.propertyPath, flags);
+            _component = component;
+            _gameObject = _component.gameObject;
+            FieldInfo = property.GetFieldInfo();
         }
 
         public InspectorProperty(Component component, FieldInfo field)
         {
             _serializedObject = new SerializedObject(component);
-            _serializedProperty = _serializedObject.FindProperty(field.Name);
+            Property = _serializedObject.FindProperty(field.Name);
             _gameObject = component.gameObject;
             _component = component;
-            _fieldInfo = field;
+            FieldInfo = field;
         }
 
         public T[] GetAttributes<T>() where T : PropertyAttribute
         {
-            return _fieldInfo.GetCustomAttributes(typeof(T), true) as T[];
+            return FieldInfo.GetCustomAttributes(typeof(T), true) as T[];
         }
 
         public string GetObjectPath()

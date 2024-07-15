@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using FireInspector.Attributes;
+using FireInspector.Extensions;
 using FireInspector.Utils;
 using UnityEditor;
 using UnityEngine;
@@ -53,23 +54,70 @@ namespace FireInspector.Validation
             var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
             var fields = component.GetType().GetFields(flags);
 
+            // If it's a builtin Unity component, skip validation
+            if (component.GetType().Namespace?.StartsWith("UnityEngine") == true)
+                return;
+
             foreach (var field in fields)
             {
+                if (!IsSerialized(field))
+                    continue;
+
                 var property = new InspectorProperty(component, field);
+                if (property.Property == null)
+                    continue;
+
                 var issuesForField = ValidateProperty(property);
                 issues.AddRange(issuesForField);
             }
         }
 
-        public static List<ValidationIssue> ValidateProperty(InspectorProperty property)
+        public static List<ValidationIssue> ValidateProperty(InspectorProperty property, bool validateChildren = true)
         {
             var issues = new List<ValidationIssue>();
 
-            foreach (var attribute in property.GetAttributes<ValidationAttribute>())
-            foreach (var issue in attribute.Validator.Validate(property))
-                issues.Add(issue);
+            // If the property is a serialized class, validate its children instead
+            if (property.Property.propertyType == SerializedPropertyType.Generic)
+            {
+                foreach (var attribute in property.GetAttributes<ValidationAttribute>())
+                    issues.Add(ValidationIssue.NotSupported(property, attribute));
+
+                if (!validateChildren)
+                    return issues;
+
+                var value = property.Property.GetGenericValue();
+                var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                var fields = value.GetType().GetFields(flags);
+                var serializedObject = property.Property.serializedObject;
+                var path = property.Property.propertyPath;
+
+                foreach (var field in fields)
+                {
+                    if (!IsSerialized(field))
+                        continue;
+
+                    var subPath = $"{path}.{field.Name}";
+                    var subProperty = serializedObject.FindProperty(subPath);
+                    var subInspectorProperty = new InspectorProperty(subProperty);
+                    if (subInspectorProperty.Property == null)
+                        continue;
+
+                    issues.AddRange(ValidateProperty(subInspectorProperty));
+                }
+            }
+            else
+            {
+                foreach (var attribute in property.GetAttributes<ValidationAttribute>())
+                    issues.AddRange(attribute.Validator.Validate(property));
+            }
 
             return issues;
+        }
+
+        private static bool IsSerialized(FieldInfo field)
+        {
+            if (field.IsStatic) return false;
+            return field.IsPublic || field.GetCustomAttribute<SerializeField>() != null;
         }
     }
 }

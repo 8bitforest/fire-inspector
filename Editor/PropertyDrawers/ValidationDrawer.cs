@@ -31,7 +31,7 @@ namespace FireInspector.Editor.PropertyDrawers
         {
             errorsContainer.Clear();
 
-            var issues = ProjectValidator.ValidateProperty(new InspectorProperty(property));
+            var issues = ProjectValidator.ValidateProperty(new InspectorProperty(property), false);
 
             foreach (var issue in issues)
             {

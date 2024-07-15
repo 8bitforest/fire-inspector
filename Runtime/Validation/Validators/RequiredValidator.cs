@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using FireInspector.Attributes;
 using FireInspector.Utils;
+using UnityEditor;
 
 namespace FireInspector.Validation.Validators
 {
@@ -8,18 +10,22 @@ namespace FireInspector.Validation.Validators
     {
         public IEnumerable<ValidationIssue> Validate(InspectorProperty property)
         {
-            var value = property.Value;
-            if (value == null || value.Equals(null))
+            var propertyType = property.Property.propertyType;
+            if (propertyType == SerializedPropertyType.String)
             {
-                return new[]
-                {
-                    new ValidationIssue
-                    {
-                        IssueSeverity = ValidationIssue.Severity.Error,
-                        Property = property,
-                        Message = $"{property.Name} is required."
-                    }
-                };
+                var value = property.Property.stringValue;
+                if (string.IsNullOrEmpty(value))
+                    return new[] { ValidationIssue.Error(property, $"{property.Name} is required.") };
+            }
+            else if (propertyType == SerializedPropertyType.ObjectReference)
+            {
+                var value = property.Property.objectReferenceValue;
+                if (value == null || value.Equals(null))
+                    return new[] { ValidationIssue.Error(property, $"{property.Name} is required.") };
+            }
+            else
+            {
+                return new[] { ValidationIssue.NotSupported(property, new RequiredAttribute()) };
             }
 
             return Enumerable.Empty<ValidationIssue>();
