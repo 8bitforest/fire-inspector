@@ -1,9 +1,9 @@
 using FireInspector.Validation;
 using UnityEngine;
 
-namespace FireInspector.Attributes
+namespace FireInspector.Attributes.Validation
 {
-    public abstract class ValidationAttribute : PropertyAttribute
+    public abstract class FireValidationAttribute : PropertyAttribute
     {
         public abstract IValidator Validator { get; }
     }

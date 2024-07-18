@@ -1,4 +1,4 @@
-using FireInspector.Attributes;
+using FireInspector.Attributes.Validation;
 using FireInspector.Editor.Elements;
 using FireInspector.Utils;
 using FireInspector.Validation;
@@ -8,17 +8,16 @@ using UnityEngine.UIElements;
 
 namespace FireInspector.Editor.PropertyDrawers
 {
-    [CustomPropertyDrawer(typeof(ValidationAttribute), true)]
-    public class ValidationDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(FireValidationAttribute), true)]
+    public class ValidationDrawer : FirePropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            var container = new VisualElement();
-
             var propertyField = new PropertyField(property);
-            container.Add(propertyField);
-
             var errorsContainer = new VisualElement();
+
+            var container = new VisualElement();
+            container.Add(propertyField);
             container.Add(errorsContainer);
 
             UpdateErrorMessage(property, errorsContainer);
@@ -31,7 +30,8 @@ namespace FireInspector.Editor.PropertyDrawers
         {
             errorsContainer.Clear();
 
-            var issues = ProjectValidator.ValidateProperty(new InspectorProperty(property), false);
+            var validationAttribute = attribute as FireValidationAttribute;
+            var issues = validationAttribute!.Validator.Validate(new InspectorProperty(property));
 
             foreach (var issue in issues)
             {

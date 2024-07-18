@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
-using FireInspector.Attributes;
+using FireInspector.Attributes.Validation;
 using FireInspector.Extensions;
 using FireInspector.Utils;
 using UnityEditor;
@@ -87,7 +87,7 @@ namespace FireInspector.Validation
             // If the property is a serialized class, validate its children instead
             if (property.Property.propertyType == SerializedPropertyType.Generic)
             {
-                foreach (var attribute in property.GetAttributes<ValidationAttribute>())
+                foreach (var attribute in property.GetAttributes<FireValidationAttribute>())
                     issues.Add(ValidationIssue.NotSupported(property, attribute));
 
                 if (!validateChildren)
@@ -115,7 +115,7 @@ namespace FireInspector.Validation
             }
             else
             {
-                foreach (var attribute in property.GetAttributes<ValidationAttribute>())
+                foreach (var attribute in property.GetAttributes<FireValidationAttribute>())
                     issues.AddRange(attribute.Validator.Validate(property));
             }
 

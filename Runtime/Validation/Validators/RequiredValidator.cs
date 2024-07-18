@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using FireInspector.Attributes;
+using FireInspector.Attributes.Validation;
 using FireInspector.Utils;
 using UnityEditor;
 
