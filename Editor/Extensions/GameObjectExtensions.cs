@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace FireInspector.Extensions
+namespace FireInspector.Editor.Extensions
 {
     public static class GameObjectExtensions
     {

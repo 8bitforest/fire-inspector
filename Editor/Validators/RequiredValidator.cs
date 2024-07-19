@@ -1,14 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using FireInspector.Attributes.Validation;
-using FireInspector.Utils;
+using FireInspector.Editor.Utils;
+using FireInspector.Editor.Validation;
+using JetBrains.Annotations;
 using UnityEditor;
 
-namespace FireInspector.Validation.Validators
+namespace FireInspector.Editor.Validators
 {
-    public class RequiredValidator : IValidator
+    [UsedImplicitly]
+    public class RequiredValidator : AttributeValidator<RequiredAttribute>
     {
-        public IEnumerable<ValidationIssue> Validate(InspectorProperty property)
+        public override IEnumerable<ValidationIssue> Validate(InspectorProperty property, RequiredAttribute attribute)
         {
             var propertyType = property.Property.propertyType;
             if (propertyType == SerializedPropertyType.String)
@@ -25,7 +28,7 @@ namespace FireInspector.Validation.Validators
             }
             else
             {
-                return new[] { ValidationIssue.NotSupported(property, new RequiredAttribute()) };
+                return new[] { ValidationIssue.NotSupported(property, attribute) };
             }
 
             return Enumerable.Empty<ValidationIssue>();

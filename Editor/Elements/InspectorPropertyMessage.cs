@@ -1,3 +1,4 @@
+using FireInspector.Editor.Extensions;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -81,18 +82,9 @@ namespace FireInspector.Editor.Elements
             style.flexDirection = FlexDirection.Row;
             style.alignItems = Align.Center;
 
-            style.borderTopWidth = 1;
-            style.borderRightWidth = 1;
-            style.borderBottomWidth = 1;
-            style.borderLeftWidth = 1;
-            style.borderTopLeftRadius = 5;
-            style.borderTopRightRadius = 5;
-            style.borderBottomLeftRadius = 5;
-            style.borderBottomRightRadius = 5;
-            style.paddingTop = 5;
-            style.paddingRight = 5;
-            style.paddingBottom = 5;
-            style.paddingLeft = 5;
+            style.SetBorderWidth(1);
+            style.SetBorderRadius(5);
+            style.SetPadding(5);
             style.marginTop = 5;
             style.marginBottom = 5;
 

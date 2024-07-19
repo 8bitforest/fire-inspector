@@ -1,12 +1,8 @@
 using System;
-using FireInspector.Validation;
-using FireInspector.Validation.Validators;
+using FireInspector.Attributes.Properties;
 
 namespace FireInspector.Attributes.Validation
 {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public class RequiredAttribute : FireValidationAttribute
-    {
-        public override IValidator Validator => new RequiredValidator();
-    }
+    public class RequiredAttribute : FireAttribute, IFireValidationAttribute { }
 }

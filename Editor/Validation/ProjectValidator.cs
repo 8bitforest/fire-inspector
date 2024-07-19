@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Reflection;
 using FireInspector.Attributes.Validation;
-using FireInspector.Extensions;
-using FireInspector.Utils;
+using FireInspector.Editor.Extensions;
+using FireInspector.Editor.Utils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace FireInspector.Validation
+namespace FireInspector.Editor.Validation
 {
     public static class ProjectValidator
     {
@@ -87,7 +87,7 @@ namespace FireInspector.Validation
             // If the property is a serialized class, validate its children instead
             if (property.Property.propertyType == SerializedPropertyType.Generic)
             {
-                foreach (var attribute in property.GetAttributes<FireValidationAttribute>())
+                foreach (var attribute in property.GetAttributes<IFireValidationAttribute>())
                     issues.Add(ValidationIssue.NotSupported(property, attribute));
 
                 if (!validateChildren)
@@ -115,11 +115,28 @@ namespace FireInspector.Validation
             }
             else
             {
-                foreach (var attribute in property.GetAttributes<FireValidationAttribute>())
-                    issues.AddRange(attribute.Validator.Validate(property));
+                foreach (var attribute in property.GetAttributes<IFireValidationAttribute>())
+                    issues.AddRange(ValidatePropertyAttribute(property, attribute));
             }
 
             return issues;
+        }
+
+        public static List<ValidationIssue> ValidatePropertyAttribute(InspectorProperty property,
+            IFireValidationAttribute attribute)
+        {
+            var validator = ValidatorProvider.GetAttributeValidator(attribute.GetType());
+            if (validator == null)
+            {
+                return new List<ValidationIssue>
+                {
+                    ValidationIssue.Error(property, $"No validator found for attribute [{attribute.GetType().Name}]")
+                };
+            }
+
+            var issues = validator.Validate(property, attribute);
+            if (issues != null) return new List<ValidationIssue>(issues);
+            return new List<ValidationIssue>();
         }
 
         private static bool IsSerialized(FieldInfo field)

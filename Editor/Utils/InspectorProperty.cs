@@ -1,10 +1,10 @@
 using System;
 using System.Reflection;
-using FireInspector.Extensions;
+using FireInspector.Editor.Extensions;
 using UnityEditor;
 using UnityEngine;
 
-namespace FireInspector.Utils
+namespace FireInspector.Editor.Utils
 {
     public class InspectorProperty
     {
@@ -37,9 +37,30 @@ namespace FireInspector.Utils
             FieldInfo = field;
         }
 
-        public T[] GetAttributes<T>() where T : PropertyAttribute
+        public T GetAttribute<T>() where T : PropertyAttribute
+        {
+            return FieldInfo.GetCustomAttribute<T>();
+        }
+
+        public T[] GetAttributes<T>()
         {
             return FieldInfo.GetCustomAttributes(typeof(T), true) as T[];
+        }
+
+        public bool IsEmpty()
+        {
+            if (Property.propertyType == SerializedPropertyType.String)
+            {
+                if (string.IsNullOrEmpty(Property.stringValue))
+                    return true;
+            }
+            else if (Property.propertyType == SerializedPropertyType.ObjectReference)
+            {
+                if (Property.objectReferenceValue == null || Property.objectReferenceValue.Equals(null))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

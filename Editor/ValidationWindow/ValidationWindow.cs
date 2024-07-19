@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using FireInspector.Editor.Elements;
-using FireInspector.Extensions;
-using FireInspector.Validation;
+using FireInspector.Editor.Extensions;
+using FireInspector.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;

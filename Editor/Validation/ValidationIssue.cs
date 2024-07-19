@@ -1,9 +1,9 @@
 using FireInspector.Attributes.Validation;
-using FireInspector.Utils;
+using FireInspector.Editor.Utils;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace FireInspector.Validation
+namespace FireInspector.Editor.Validation
 {
     public class ValidationIssue
     {
@@ -77,7 +77,7 @@ namespace FireInspector.Validation
             };
         }
 
-        public static ValidationIssue NotSupported(InspectorProperty property, FireValidationAttribute attribute)
+        public static ValidationIssue NotSupported(InspectorProperty property, IFireValidationAttribute attribute)
         {
             var attributeName = attribute.GetType().Name;
             attributeName = attributeName.Substring(0, attributeName.Length - 9);

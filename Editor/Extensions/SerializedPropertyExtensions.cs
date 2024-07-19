@@ -2,7 +2,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
-namespace FireInspector.Extensions
+namespace FireInspector.Editor.Extensions
 {
     public static class SerializedPropertyExtensions
     {

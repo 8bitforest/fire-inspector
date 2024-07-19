@@ -1,12 +1,14 @@
+using FireInspector.Attributes.Validation;
+
 namespace FireInspector.Attributes.Properties
 {
-    public class SelectAttribute : FirePropertyAttribute
+    public class SelectAttribute : FireAttribute, IFireValidationAttribute
     {
-        public string GetListMethodName { get; private set; }
+        public string GetOptionsMethodName { get; private set; }
 
-        public SelectAttribute(string getListMethodName)
+        public SelectAttribute(string getOptionsMethodName)
         {
-            GetListMethodName = getListMethodName;
+            GetOptionsMethodName = getOptionsMethodName;
         }
     }
 }
