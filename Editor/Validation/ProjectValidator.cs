@@ -100,6 +100,9 @@ namespace FireInspector.Editor.Validation
         public static List<ValidationIssue> ValidateProperty(SerializedProperty property)
         {
             var issues = new List<ValidationIssue>();
+            if (!property.IsValid())
+                return issues;
+
             var field = property.GetFieldInfo();
             if (field == null)
                 return new List<ValidationIssue>();

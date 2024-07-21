@@ -101,11 +101,23 @@ namespace FireInspector.Editor.Extensions
         {
             return property.GetFieldInfo()?.GetCustomAttributes(typeof(T), true) as T[] ?? Array.Empty<T>();
         }
-        
+
         public static int GetArraySize(this SerializedProperty property)
         {
             var sizeProperty = property.FindPropertyRelative("Array.size");
             return sizeProperty.intValue;
+        }
+
+        public static bool IsValid(this SerializedProperty property)
+        {
+            try
+            {
+                return property?.serializedObject != null && property.serializedObject.targetObject != null;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
