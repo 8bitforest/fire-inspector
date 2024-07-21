@@ -67,5 +67,11 @@ namespace FireInspector.Editor.Extensions
 
             return targetObject;
         }
+
+        public static SerializedProperty FindSiblingProperty(this SerializedProperty property, string siblingName)
+        {
+            var parentPath = property.propertyPath[..property.propertyPath.LastIndexOf('.')];
+            return property.serializedObject.FindProperty(parentPath + "." + siblingName);
+        }
     }
 }

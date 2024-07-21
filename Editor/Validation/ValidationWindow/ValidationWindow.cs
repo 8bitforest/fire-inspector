@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using FireInspector.Editor.Elements;
 using FireInspector.Editor.Extensions;
-using FireInspector.Editor.Validation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace FireInspector.Editor.ValidationWindow
+namespace FireInspector.Editor.Validation.ValidationWindow
 {
     public class FirePropertyValidationWindow : EditorWindow
     {
@@ -27,11 +26,11 @@ namespace FireInspector.Editor.ValidationWindow
         private void CreateGUI()
         {
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Packages/com.eightbitforest.fire-inspector/Editor/ValidationWindow/ValidationWindow.uxml");
+                "Packages/com.eightbitforest.fire-inspector/Editor/Validation/ValidationWindow/ValidationWindow.uxml");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Packages/com.eightbitforest.fire-inspector/Editor/ValidationWindow/ValidationWindow.uss");
+                "Packages/com.eightbitforest.fire-inspector/Editor/Validation/ValidationWindow/ValidationWindow.uss");
             _issueTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Packages/com.eightbitforest.fire-inspector/Editor/ValidationWindow/ValidationWindowIssue.uxml");
+                "Packages/com.eightbitforest.fire-inspector/Editor/Validation/ValidationWindow/ValidationWindowIssue.uxml");
 
             VisualElement root = visualTree.CloneTree();
             root.styleSheets.Add(styleSheet);

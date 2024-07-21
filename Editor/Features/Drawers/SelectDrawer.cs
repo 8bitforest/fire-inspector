@@ -1,12 +1,12 @@
 using System;
-using UnityEditor;
-using UnityEngine.UIElements;
 using FireInspector.Attributes.Properties;
 using FireInspector.Editor.Elements;
 using FireInspector.Editor.Utils;
+using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
-namespace FireInspector.Editor.PropertyDrawers
+namespace FireInspector.Editor.Features.Drawers
 {
     [CustomPropertyDrawer(typeof(SelectAttribute))]
     public class SelectDrawer : FirePropertyDrawer
@@ -18,14 +18,24 @@ namespace FireInspector.Editor.PropertyDrawers
             popupField.AddToClassList(BaseField<ObjectField>.alignedFieldUssClassName);
             popupField.RegisterValueChangedCallback(evt =>
             {
-                property.boxedValue = evt.newValue.Value;
+                property.boxedValue = evt.newValue?.Value;
                 property.serializedObject.ApplyModifiedProperties();
                 onChange();
             });
-            
-            var option = options.Find(o => o.Value.Equals(property.boxedValue));
-            if (option != null)
-                popupField.value = option;
+            popupField.value = options.Find(o => o.Value.Equals(property.boxedValue));
+
+            var selectAttribute = (SelectAttribute)attribute;
+            if (!string.IsNullOrEmpty(selectAttribute.DependsOn))
+            {
+                var dependsOnProperty = FindProperty(selectAttribute.DependsOn);
+                dependsOnProperty?.OnChanged(() =>
+                {
+                    options = SelectUtils.GetSelectOptions(property);
+                    popupField.Options = options;
+                    popupField.SetValueWithoutNotify(options.Find(o => o.Value.Equals(property.boxedValue)));
+                    onChange();
+                });
+            }
 
             return popupField;
         }

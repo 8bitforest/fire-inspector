@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using FireInspector.Editor.Features;
 using UnityEngine;
 
-namespace FireInspector.Editor.Validation
+namespace FireInspector.Editor.Utils
 {
-    public static class ValidatorProvider
+    public static class FireAttributeTypes
     {
         private static readonly Dictionary<Type, object> Validators = new();
 
-        static ValidatorProvider()
+        static FireAttributeTypes()
         {
             var startTime = Time.realtimeSinceStartup;
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -34,10 +35,10 @@ namespace FireInspector.Editor.Validation
             }
         }
 
-        public static Validator GetAttributeValidator(Type attributeType)
+        public static FireValidator GetAttributeValidator(Type attributeType)
         {
             if (Validators.TryGetValue(attributeType, out var validator))
-                return (Validator)validator;
+                return (FireValidator)validator;
             return null;
         }
     }

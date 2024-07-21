@@ -6,7 +6,7 @@ using FireInspector.Editor.Validation;
 using FireInspector.Elements;
 using JetBrains.Annotations;
 
-namespace FireInspector.Editor.Validators
+namespace FireInspector.Editor.Features.Validators
 {
     [UsedImplicitly]
     public class SelectValidator : AttributeValidator<SelectAttribute>
@@ -26,6 +26,10 @@ namespace FireInspector.Editor.Validators
                     ValidationIssue.Error(property, $"Get options method should return a SelectOptionList<{fieldType}>.")
                 };
             }
+
+            // If it depends on another property, make sure that property exists
+            var issues = ProjectValidator.ValidatePropertyReference(property, attribute.DependsOn);
+            if (issues.Any()) return issues;
 
             // Let the RequiredValidator handle this, if the user wants to enforce a selection
             if (property.IsEmpty()) return null;

@@ -28,5 +28,4 @@ namespace FireInspector.Editor.Utils
             return items != null ? new List<SelectOption>(items) : new List<SelectOption>();
         }
     }
-
 }

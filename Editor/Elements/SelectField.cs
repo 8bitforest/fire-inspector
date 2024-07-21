@@ -13,10 +13,22 @@ namespace FireInspector.Editor.Elements
     public class SelectField : BaseField<SelectOption>
     {
         private VisualElement VisualInput => this.Q<VisualElement>(className: inputUssClassName);
+        
+        private readonly List<SelectOption> _options;
+
+        public List<SelectOption> Options
+        {
+            get => _options;
+            set
+            {
+                _options.Clear();
+                _options.AddRange(value);
+                UpdateLabel();
+            }
+        }
 
         private bool _popupVisible;
         private SelectPopupWindow _popup;
-        private readonly List<SelectOption> _options;
         private readonly TextElement _textElement;
         private readonly Image _iconElement;
 
@@ -72,7 +84,12 @@ namespace FireInspector.Editor.Elements
                 {
                     _popup = ScriptableObject.CreateInstance<SelectPopupWindow>();
                     _popup.Initialize(_options, new List<SelectOption> { value },
-                        options => { value = options[0]; });
+                        options =>
+                        {
+                            value = options[0]; 
+                            _popup.Close();
+                            _popup = null;
+                        });
                     var rect = GUIUtility.GUIToScreenRect(VisualInput.worldBound);
                     var width = VisualInput.worldBound.width;
                     _popup.ShowAsDropDown(rect, new Vector2(width, 300));
@@ -91,7 +108,8 @@ namespace FireInspector.Editor.Elements
 
         private void UpdateLabel()
         {
-            if (value.Icon != null)
+            var valid = _options.Contains(value);
+            if (valid && value?.Icon != null)
             {
                 _iconElement.style.display = DisplayStyle.Flex;
                 _iconElement.image = value.Icon;
@@ -101,7 +119,7 @@ namespace FireInspector.Editor.Elements
                 _iconElement.style.display = DisplayStyle.None;
             }
 
-            _textElement.text = value.Text;
+            _textElement.text = valid ? value?.Text : "";
         }
 
         private class SelectTextElement : TextElement { }

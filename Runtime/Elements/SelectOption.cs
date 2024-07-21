@@ -12,7 +12,7 @@ namespace FireInspector.Elements
 
     public class SelectOption<T> : SelectOption
     {
-        public new T Value { get; private set; }
+        public new T Value { get; }
 
         public SelectOption(T value)
         {
@@ -34,6 +34,24 @@ namespace FireInspector.Elements
             Value = value;
             base.Value = value;
             Icon = icon;
+        }
+
+        protected bool Equals(SelectOption<T> other)
+        {
+            return EqualityComparer<T>.Default.Equals(Value, other.Value);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((SelectOption<T>)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return EqualityComparer<T>.Default.GetHashCode(Value);
         }
 
         public static implicit operator SelectOption<T>(T value) => new(value);

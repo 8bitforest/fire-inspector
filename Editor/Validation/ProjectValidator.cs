@@ -125,7 +125,7 @@ namespace FireInspector.Editor.Validation
         public static List<ValidationIssue> ValidatePropertyAttribute(InspectorProperty property,
             IFireValidationAttribute attribute)
         {
-            var validator = ValidatorProvider.GetAttributeValidator(attribute.GetType());
+            var validator = FireAttributeTypes.GetAttributeValidator(attribute.GetType());
             if (validator == null)
             {
                 return new List<ValidationIssue>
@@ -137,6 +137,22 @@ namespace FireInspector.Editor.Validation
             var issues = validator.Validate(property, attribute);
             if (issues != null) return new List<ValidationIssue>(issues);
             return new List<ValidationIssue>();
+        }
+
+        public static List<ValidationIssue> ValidatePropertyReference(InspectorProperty property, string reference)
+        {
+            var issues = new List<ValidationIssue>();
+            if (string.IsNullOrEmpty(reference))
+                return issues;
+            
+            var referenceProperty = property.Property.FindSiblingProperty(reference);
+            if (referenceProperty == null)
+            {
+                issues.Add(ValidationIssue.Error(property, $"Property '{reference}' not found."));
+                return issues;
+            }
+
+            return issues;
         }
 
         private static bool IsSerialized(FieldInfo field)

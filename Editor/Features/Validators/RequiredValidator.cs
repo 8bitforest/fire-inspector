@@ -6,7 +6,7 @@ using FireInspector.Editor.Validation;
 using JetBrains.Annotations;
 using UnityEditor;
 
-namespace FireInspector.Editor.Validators
+namespace FireInspector.Editor.Features.Validators
 {
     [UsedImplicitly]
     public class RequiredValidator : AttributeValidator<RequiredAttribute>
