@@ -12,8 +12,7 @@ namespace FireInspector.Editor.Utils
         public static MethodInfo GetOptionsMethod(SerializedProperty property)
         {
             var obj = property.GetContainingObject();
-            var inspectorProperty = new InspectorProperty(property);
-            var attribute = inspectorProperty.GetAttribute<SelectAttribute>();
+            var attribute = property.GetAttribute<SelectAttribute>();
             var methodName = attribute!.GetOptionsMethodName;
             var method = obj!.GetType().GetMethod(methodName,
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);

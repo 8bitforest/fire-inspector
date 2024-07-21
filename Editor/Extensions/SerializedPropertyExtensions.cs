@@ -1,10 +1,12 @@
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEngine;
 
 namespace FireInspector.Editor.Extensions
 {
-    public static class SerializedPropertyExtensions
+    internal static class SerializedPropertyExtensions
     {
         public static FieldInfo GetFieldInfo(this SerializedProperty property)
         {
@@ -72,6 +74,32 @@ namespace FireInspector.Editor.Extensions
         {
             var parentPath = property.propertyPath[..property.propertyPath.LastIndexOf('.')];
             return property.serializedObject.FindProperty(parentPath + "." + siblingName);
+        }
+
+        public static bool IsValueEmpty(this SerializedProperty property)
+        {
+            if (property.propertyType == SerializedPropertyType.String)
+            {
+                if (string.IsNullOrEmpty(property.stringValue))
+                    return true;
+            }
+            else if (property.propertyType == SerializedPropertyType.ObjectReference)
+            {
+                if (property.objectReferenceValue == null || property.objectReferenceValue.Equals(null))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static T GetAttribute<T>(this SerializedProperty property) where T : PropertyAttribute
+        {
+            return property.GetFieldInfo()?.GetCustomAttribute<T>();
+        }
+
+        public static T[] GetAttributes<T>(this SerializedProperty property)
+        {
+            return property.GetFieldInfo()?.GetCustomAttributes(typeof(T), true) as T[] ?? Array.Empty<T>();
         }
     }
 }

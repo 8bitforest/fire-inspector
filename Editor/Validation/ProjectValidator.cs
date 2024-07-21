@@ -31,6 +31,15 @@ namespace FireInspector.Editor.Validation
                 ValidateGameObject(issues, prefab);
             }
 
+            // Scan all scriptable objects in the project
+            var scriptableObjectGuids = AssetDatabase.FindAssets("t:ScriptableObject");
+            foreach (var guid in scriptableObjectGuids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var scriptableObject = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
+                ValidateScriptableObject(issues, scriptableObject);
+            }
+
             return issues;
         }
 
@@ -66,26 +75,48 @@ namespace FireInspector.Editor.Validation
             if (component.GetType().Namespace?.StartsWith("UnityEngine") == true)
                 return;
 
-            foreach (var field in fields)
+            var serializedObject = new SerializedObject(component);
+            var property = serializedObject.GetIterator();
+            property.NextVisible(true);
+
+            // foreach (var field in fields)
+            // {
+            //     if (!IsSerialized(field))
+            //         continue;
+            //
+            //     var property = serializedObject.FindProperty(field.Name);
+            //     if (property == null)
+            //         continue;
+            //
+            //     var issuesForField = ValidateProperty(property);
+            //     issues.AddRange(issuesForField);
+            // }
+
+            while (property.NextVisible(false))
             {
-                if (!IsSerialized(field))
-                    continue;
-
-                var property = new InspectorProperty(component, field);
-                if (property.Property == null)
-                    continue;
-
                 var issuesForField = ValidateProperty(property);
                 issues.AddRange(issuesForField);
             }
         }
 
-        public static List<ValidationIssue> ValidateProperty(InspectorProperty property, bool validateChildren = true)
+        private static void ValidateScriptableObject(List<ValidationIssue> issues, ScriptableObject scriptableObject)
+        {
+            var serializedObject = new SerializedObject(scriptableObject);
+            var property = serializedObject.GetIterator();
+            property.NextVisible(true);
+            while (property.NextVisible(false))
+            {
+                var issuesForField = ValidateProperty(property);
+                issues.AddRange(issuesForField);
+            }
+        }
+
+        public static List<ValidationIssue> ValidateProperty(SerializedProperty property, bool validateChildren = true)
         {
             var issues = new List<ValidationIssue>();
 
             // If the property is a serialized class, validate its children instead
-            if (property.Property.propertyType == SerializedPropertyType.Generic)
+            if (property.propertyType == SerializedPropertyType.Generic)
             {
                 foreach (var attribute in property.GetAttributes<IFireValidationAttribute>())
                     issues.Add(ValidationIssue.NotSupported(property, attribute));
@@ -93,11 +124,11 @@ namespace FireInspector.Editor.Validation
                 if (!validateChildren)
                     return issues;
 
-                var value = property.Property.GetGenericValue();
+                var value = property.GetGenericValue();
                 var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
                 var fields = value.GetType().GetFields(flags);
-                var serializedObject = property.Property.serializedObject;
-                var path = property.Property.propertyPath;
+                var serializedObject = property.serializedObject;
+                var path = property.propertyPath;
 
                 foreach (var field in fields)
                 {
@@ -106,11 +137,10 @@ namespace FireInspector.Editor.Validation
 
                     var subPath = $"{path}.{field.Name}";
                     var subProperty = serializedObject.FindProperty(subPath);
-                    var subInspectorProperty = new InspectorProperty(subProperty);
-                    if (subInspectorProperty.Property == null)
+                    if (subProperty == null)
                         continue;
 
-                    issues.AddRange(ValidateProperty(subInspectorProperty));
+                    issues.AddRange(ValidateProperty(subProperty));
                 }
             }
             else
@@ -122,7 +152,7 @@ namespace FireInspector.Editor.Validation
             return issues;
         }
 
-        public static List<ValidationIssue> ValidatePropertyAttribute(InspectorProperty property,
+        public static List<ValidationIssue> ValidatePropertyAttribute(SerializedProperty property,
             IFireValidationAttribute attribute)
         {
             var validator = FireAttributeTypes.GetAttributeValidator(attribute.GetType());
@@ -139,13 +169,13 @@ namespace FireInspector.Editor.Validation
             return new List<ValidationIssue>();
         }
 
-        public static List<ValidationIssue> ValidatePropertyReference(InspectorProperty property, string reference)
+        public static List<ValidationIssue> ValidatePropertyReference(SerializedProperty property, string reference)
         {
             var issues = new List<ValidationIssue>();
             if (string.IsNullOrEmpty(reference))
                 return issues;
-            
-            var referenceProperty = property.Property.FindSiblingProperty(reference);
+
+            var referenceProperty = property.FindSiblingProperty(reference);
             if (referenceProperty == null)
             {
                 issues.Add(ValidationIssue.Error(property, $"Property '{reference}' not found."));

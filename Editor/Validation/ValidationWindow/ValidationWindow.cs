@@ -69,10 +69,8 @@ namespace FireInspector.Editor.Validation.ValidationWindow
                 {
                     var issueElement = _issueTemplate.Instantiate();
 
-                    issueElement.Q<Label>("issueHeader").text = issue.GameObject.GetObjectPath();
-                    issueElement.Q<Label>("issueSubHeader").text = issue.Property != null
-                        ? $"{issue.Property?.Component.GetType().Name} > {issue.Property?.Name}"
-                        : "(Script)";
+                    issueElement.Q<Label>("issueHeader").text = GetIssueHeader(issue);
+                    issueElement.Q<Label>("issueSubHeader").text = GetIssueSubHeader(issue);
                     issueElement.Q<Label>("issueMessage").text = issue.Message;
                     issueElement.Q<InspectorPropertyMessage>("message").Type = issue.IssueSeverity switch
                     {
@@ -87,6 +85,36 @@ namespace FireInspector.Editor.Validation.ValidationWindow
 
             Debug.Log("Scan complete.");
             Debug.Log($"Found {_issues.Count} issues.");
+        }
+
+        private string GetIssueHeader(ValidationIssue issue)
+        {
+            var target = issue.Target;
+            if (target == null) return "";
+
+            var property = issue.Property;
+            if (property == null)
+                return "(Script)";
+
+            if (target is Component component)
+                return $"{component.GetType().Name} > {property.displayName}";
+            if (target is ScriptableObject)
+                return property.displayName;
+            return target.GetType().Name;
+        }
+
+        private string GetIssueSubHeader(ValidationIssue issue)
+        {
+            var target = issue.Target;
+            if (target == null) return "";
+
+            if (target is Component component)
+                return component.gameObject.GetObjectPath();
+            if (target is ScriptableObject so)
+                return AssetDatabase.GetAssetPath(so);
+            if (target is GameObject gameObject)
+                return $"{gameObject.GetObjectPath()}";
+            return target.GetType().Name;
         }
     }
 }

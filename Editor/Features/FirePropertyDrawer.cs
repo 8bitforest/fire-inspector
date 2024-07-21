@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using FireInspector.Editor.Elements;
 using FireInspector.Editor.Extensions;
-using FireInspector.Editor.Utils;
 using FireInspector.Editor.Validation;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -20,7 +19,7 @@ namespace FireInspector.Editor.Features
         private string _propertyKey;
         private VisualElement _field;
         private VisualElement _errorsContainer;
-        
+
         public sealed override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             _property = property;
@@ -62,7 +61,7 @@ namespace FireInspector.Editor.Features
         {
             _errorsContainer.Clear();
 
-            var issues = ProjectValidator.ValidateProperty(new InspectorProperty(_property), false);
+            var issues = ProjectValidator.ValidateProperty(_property, false);
             if (issues == null) return;
 
             foreach (var issue in issues)

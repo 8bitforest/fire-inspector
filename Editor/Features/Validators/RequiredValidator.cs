@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using FireInspector.Attributes.Validation;
-using FireInspector.Editor.Utils;
 using FireInspector.Editor.Validation;
 using JetBrains.Annotations;
 using UnityEditor;
@@ -11,20 +10,20 @@ namespace FireInspector.Editor.Features.Validators
     [UsedImplicitly]
     public class RequiredValidator : AttributeValidator<RequiredAttribute>
     {
-        public override IEnumerable<ValidationIssue> Validate(InspectorProperty property, RequiredAttribute attribute)
+        public override IEnumerable<ValidationIssue> Validate(SerializedProperty property, RequiredAttribute attribute)
         {
-            var propertyType = property.Property.propertyType;
+            var propertyType = property.propertyType;
             if (propertyType == SerializedPropertyType.String)
             {
-                var value = property.Property.stringValue;
+                var value = property.stringValue;
                 if (string.IsNullOrEmpty(value))
-                    return new[] { ValidationIssue.Error(property, $"{property.Name} is required.") };
+                    return new[] { ValidationIssue.Error(property, $"{property.displayName} is required.") };
             }
             else if (propertyType == SerializedPropertyType.ObjectReference)
             {
-                var value = property.Property.objectReferenceValue;
+                var value = property.objectReferenceValue;
                 if (value == null || value.Equals(null))
-                    return new[] { ValidationIssue.Error(property, $"{property.Name} is required.") };
+                    return new[] { ValidationIssue.Error(property, $"{property.displayName} is required.") };
             }
             else
             {
