@@ -61,7 +61,7 @@ namespace FireInspector.Editor.Features
         {
             _errorsContainer.Clear();
 
-            var issues = ProjectValidator.ValidateProperty(_property, false);
+            var issues = ProjectValidator.ValidateProperty(_property);
             if (issues == null) return;
 
             foreach (var issue in issues)

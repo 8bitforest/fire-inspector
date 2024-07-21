@@ -68,84 +68,60 @@ namespace FireInspector.Editor.Validation
 
         private static void ValidateComponent(List<ValidationIssue> issues, Component component)
         {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            var fields = component.GetType().GetFields(flags);
-
             // If it's a builtin Unity component, skip validation
             if (component.GetType().Namespace?.StartsWith("UnityEngine") == true)
                 return;
 
-            var serializedObject = new SerializedObject(component);
-            var property = serializedObject.GetIterator();
-            property.NextVisible(true);
-
-            // foreach (var field in fields)
-            // {
-            //     if (!IsSerialized(field))
-            //         continue;
-            //
-            //     var property = serializedObject.FindProperty(field.Name);
-            //     if (property == null)
-            //         continue;
-            //
-            //     var issuesForField = ValidateProperty(property);
-            //     issues.AddRange(issuesForField);
-            // }
-
-            while (property.NextVisible(false))
-            {
-                var issuesForField = ValidateProperty(property);
-                issues.AddRange(issuesForField);
-            }
+            ValidateSerializableObject(issues, new SerializedObject(component));
         }
 
         private static void ValidateScriptableObject(List<ValidationIssue> issues, ScriptableObject scriptableObject)
         {
-            var serializedObject = new SerializedObject(scriptableObject);
+            ValidateSerializableObject(issues, new SerializedObject(scriptableObject));
+        }
+
+        private static void ValidateSerializableObject(List<ValidationIssue> issues, SerializedObject serializedObject)
+        {
             var property = serializedObject.GetIterator();
-            property.NextVisible(true);
-            while (property.NextVisible(false))
+            var enterChildren = true;
+
+            while (property.NextVisible(enterChildren))
             {
+                if (property.isArray)
+                    enterChildren = false;
+                else
+                    enterChildren = true;
+
                 var issuesForField = ValidateProperty(property);
                 issues.AddRange(issuesForField);
             }
         }
 
-        public static List<ValidationIssue> ValidateProperty(SerializedProperty property, bool validateChildren = true)
+        public static List<ValidationIssue> ValidateProperty(SerializedProperty property)
         {
             var issues = new List<ValidationIssue>();
+            var field = property.GetFieldInfo();
+            if (field == null)
+                return new List<ValidationIssue>();
 
-            // If the property is a serialized class, validate its children instead
-            if (property.propertyType == SerializedPropertyType.Generic)
+            var attributes = field.GetCustomAttributes(typeof(IFireValidationAttribute), true)
+                as IFireValidationAttribute[];
+            if (attributes == null || attributes.Length == 0)
+                return issues;
+
+            if (property.isArray && property.propertyType != SerializedPropertyType.String)
             {
                 foreach (var attribute in property.GetAttributes<IFireValidationAttribute>())
+                    issues.AddRange(ValidatePropertyAttribute(property, attribute));
+            }
+            else if (property.propertyType == SerializedPropertyType.Generic)
+            {
+                foreach (var attribute in attributes)
                     issues.Add(ValidationIssue.NotSupported(property, attribute));
-
-                if (!validateChildren)
-                    return issues;
-
-                var value = property.GetGenericValue();
-                var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-                var fields = value.GetType().GetFields(flags);
-                var serializedObject = property.serializedObject;
-                var path = property.propertyPath;
-
-                foreach (var field in fields)
-                {
-                    if (!IsSerialized(field))
-                        continue;
-
-                    var subPath = $"{path}.{field.Name}";
-                    var subProperty = serializedObject.FindProperty(subPath);
-                    if (subProperty == null)
-                        continue;
-
-                    issues.AddRange(ValidateProperty(subProperty));
-                }
             }
             else
             {
-                foreach (var attribute in property.GetAttributes<IFireValidationAttribute>())
+                foreach (var attribute in attributes)
                     issues.AddRange(ValidatePropertyAttribute(property, attribute));
             }
 
