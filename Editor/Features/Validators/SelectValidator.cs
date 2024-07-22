@@ -17,6 +17,17 @@ namespace FireInspector.Editor.Features.Validators
         {
             var options = SelectUtils.GetSelectOptions(property);
 
+            // Make sure the type is supported
+            var supportedTypes = new[]
+            {
+                SerializedPropertyType.Integer,
+                SerializedPropertyType.Float,
+                SerializedPropertyType.String,
+                SerializedPropertyType.ObjectReference
+            };
+            if (!supportedTypes.Contains(property.propertyType))
+                return new[] { ValidationIssue.NotSupported(property, attribute) };
+
             // Make sure that the types of the property and the options match
             var field = property.GetFieldInfo();
             var fieldType = field.FieldType;

@@ -66,7 +66,7 @@ namespace FireInspector.Editor.Validation
                 Property = property.Copy(),
                 Target = property.serializedObject.targetObject,
                 Message =
-                    $"{property.displayName} ({property.type}) does not support the [{attributeName}] attribute."
+                    $"[{attributeName}] does not support {property.type}."
             };
         }
     }

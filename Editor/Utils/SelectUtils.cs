@@ -26,5 +26,13 @@ namespace FireInspector.Editor.Utils
             var items = method!.Invoke(obj, null) as IEnumerable<SelectOption>;
             return items != null ? new List<SelectOption>(items) : new List<SelectOption>();
         }
+
+        public static List<SelectOption<T>> GetSelectOptions<T>(SerializedProperty property)
+        {
+            var obj = property.GetContainingObject();
+            var method = GetOptionsMethod(property);
+            var items = method!.Invoke(obj, null) as IEnumerable<SelectOption<T>>;
+            return items != null ? new List<SelectOption<T>>(items) : new List<SelectOption<T>>();
+        }
     }
 }

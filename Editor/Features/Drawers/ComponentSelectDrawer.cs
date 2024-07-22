@@ -16,35 +16,26 @@ namespace FireInspector.Editor.Features.Drawers
         protected override VisualElement CreatePropertyElement(SerializedProperty property)
         {
             var pickerAttribute = (ComponentSelectAttribute)attribute;
-            var options = new List<SelectOption>();
+            var options = new List<SelectOption<Object>>();
             var targetField = new ObjectField(pickerAttribute.TargetDisplayName);
-            var componentField = new SelectField(property.displayName, options);
+            var componentField = new SelectField<Object>(property.displayName, options);
 
+            componentField.BindProperty(property);
+            componentField.AddToClassList(BaseField<ObjectField>.alignedFieldUssClassName);
+            componentField.RegisterValueChangedCallback(e =>
+            {
+                targetField.SetValueWithoutNotify((e.newValue as Component)?.gameObject);
+                UpdateOptions(targetField, componentField);
+            });
+
+            targetField.value = (componentField.value as Component)?.gameObject;
             targetField.objectType = typeof(GameObject);
             targetField.AddToClassList(BaseField<ObjectField>.alignedFieldUssClassName);
             targetField.RegisterValueChangedCallback(_ =>
             {
                 UpdateOptions(targetField, componentField);
-                property.objectReferenceValue = null;
-                property.serializedObject.ApplyModifiedProperties();
                 componentField.value = null;
             });
-
-            componentField.AddToClassList(BaseField<ObjectField>.alignedFieldUssClassName);
-            componentField.RegisterValueChangedCallback(evt =>
-            {
-                property.objectReferenceValue = evt.newValue?.Value as Component;
-                property.serializedObject.ApplyModifiedProperties();
-            });
-
-            var value = property.objectReferenceValue;
-            if (value != null)
-            {
-                targetField.value = (value as Component)?.gameObject;
-                UpdateOptions(targetField, componentField);
-                var option = options.Find(o => o.Value.Equals(value));
-                componentField.value = option;
-            }
 
             var container = new VisualElement();
             container.Add(targetField);
@@ -52,17 +43,17 @@ namespace FireInspector.Editor.Features.Drawers
             return container;
         }
 
-        private void UpdateOptions(ObjectField targetField, SelectField componentField)
+        private void UpdateOptions(ObjectField targetField, SelectField<Object> componentField)
         {
             componentField.Options = targetField.value == null
-                ? new List<SelectOption>()
-                : GetOptions(targetField.value as GameObject).ToList<SelectOption>();
+                ? new List<SelectOption<Object>>()
+                : GetOptions(targetField.value as GameObject);
         }
 
-        private SelectOptionList<Component> GetOptions(GameObject target)
+        private List<SelectOption<Object>> GetOptions(GameObject target)
         {
             if (target == null)
-                return new SelectOptionList<Component>();
+                return new List<SelectOption<Object>>();
 
             Texture GetComponentImage(Component c)
             {
@@ -73,10 +64,10 @@ namespace FireInspector.Editor.Features.Drawers
 #endif
             }
 
-            return new SelectOptionList<Component>(target.GetComponents<Component>()
+            return new List<SelectOption<Object>>(target.GetComponents<Component>()
                 .Where(c => c != null)
                 .Select(c =>
-                    new SelectOption<Component>(
+                    new SelectOption<Object>(
                         c.GetType().Name,
                         c,
                         GetComponentImage(c)
