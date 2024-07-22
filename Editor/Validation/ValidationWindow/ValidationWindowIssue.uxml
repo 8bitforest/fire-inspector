@@ -3,9 +3,9 @@
         <ui:VisualElement class="validation-issue">
             <FireInspector.Editor.Elements.InspectorPropertyMessage name="message" message-type="Error">
                 <ui:Label name="issueHeader" text="Header" class="header"
-                          style="font-size: 14px; -unity-font-style: bold; color: black" />
-                <ui:Label name="issueSubHeader" text="SubHeader" class="scene-path" style="color: black " />
-                <ui:Label name="issueMessage" text="Message" style="color: black" />
+                          style="font-size: 14px; -unity-font-style: bold; color: black; white-space: normal;" />
+                <ui:Label name="issueSubHeader" text="SubHeader" class="scene-path" style="color: black; white-space: normal;" />
+                <ui:Label name="issueMessage" text="Message" style="color: black; white-space: normal;" />
             </FireInspector.Editor.Elements.InspectorPropertyMessage>
         </ui:VisualElement>
     </ui:VisualElement>

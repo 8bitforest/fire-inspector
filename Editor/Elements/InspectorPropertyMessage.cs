@@ -96,6 +96,7 @@ namespace FireInspector.Editor.Elements
             hierarchy.Add(_content);
 
             _label = new Label(message);
+            _label.style.whiteSpace = WhiteSpace.Normal;
             Add(_label);
 
             Text = message;
