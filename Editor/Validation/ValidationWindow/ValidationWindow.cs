@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using FireInspector.Editor.Elements;
 using FireInspector.Editor.Extensions;
+using FireInspector.Validation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -92,15 +93,25 @@ namespace FireInspector.Editor.Validation.ValidationWindow
             var target = issue.Target;
             if (target == null) return "";
 
-            var property = issue.Property;
-            if (property == null)
-                return "(Script)";
+            string propertyName = null;
+            if (issue is EditorValidationIssue editorIssue)
+            {
+                var property = editorIssue.Property;
+                if (property == null)
+                    return "(Script)";
+                propertyName = property.displayName;
+            }
 
-            if (target is Component component)
-                return $"{component.GetType().Name} > {property.displayName}";
-            if (target is ScriptableObject)
-                return property.displayName;
-            return target.GetType().Name;
+            return target switch
+            {
+                Component component => propertyName != null
+                    ? $"{component.GetType().Name} > {propertyName}"
+                    : $"{component.gameObject.name} > {component.GetType().Name}",
+                ScriptableObject => propertyName != null
+                    ? $"{target.name} > {propertyName}"
+                    : target.name,
+                _ => target.GetType().Name
+            };
         }
 
         private string GetIssueSubHeader(ValidationIssue issue)

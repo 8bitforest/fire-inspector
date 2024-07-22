@@ -6,6 +6,7 @@ using FireInspector.Editor.Elements;
 using FireInspector.Editor.Extensions;
 using FireInspector.Editor.Utils;
 using FireInspector.Editor.Validation;
+using FireInspector.Validation;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -16,6 +17,7 @@ namespace FireInspector.Editor.Features
     public class FireEditor : UnityEditor.Editor, IDisposable
     {
         private static readonly Dictionary<int, FireEditorObject> Objects = new();
+        private VisualElement _objectErrorsContainer;
 
         ~FireEditor()
         {
@@ -46,11 +48,17 @@ namespace FireInspector.Editor.Features
             Objects.Remove(objectKey);
             Objects.Add(objectKey, new FireEditorObject());
 
+            _objectErrorsContainer = new VisualElement();
+            _objectErrorsContainer.AddToClassList("fire-inspector-object-errors-container");
+            inspector.Add(_objectErrorsContainer);
+
             var scriptField = serializedObject.FindProperty("m_Script");
             if (scriptField != null)
                 AddPropertyField(inspector, scriptField);
 
             AddObjectFields(inspector, serializedObject.targetObject);
+
+            UpdateObjectErrors();
 
             return inspector;
         }
@@ -71,7 +79,7 @@ namespace FireInspector.Editor.Features
                 }
                 else
                 {
-                    var attribute = field.GetCustomAttribute<ShowInInspector>();
+                    var attribute = field.GetCustomAttribute<ShowInInspectorAttribute>();
                     if (attribute != null)
                         to.Add(ShowInInspectorDrawer.CreateFieldGUI(serializedObject, field));
                 }
@@ -115,7 +123,11 @@ namespace FireInspector.Editor.Features
 
             UpdatePropertyErrors(errorsContainer, property);
             propertyField.RegisterValueChangeCallback(_ => editorProperty.InvokeChanged());
-            editorProperty.OnChanged(() => UpdatePropertyErrors(errorsContainer, property));
+            editorProperty.OnChanged(() =>
+            {
+                UpdatePropertyErrors(errorsContainer, property);
+                UpdateObjectErrors();
+            });
 
             inspector.Add(container);
         }
@@ -138,6 +150,27 @@ namespace FireInspector.Editor.Features
                 };
                 var errorContainer = new InspectorPropertyMessage(issue.Message, type);
                 errorsContainer.Add(errorContainer);
+            }
+        }
+
+        private void UpdateObjectErrors()
+        {
+            _objectErrorsContainer.Clear();
+
+            var issues = ProjectValidator.ValidateObject(serializedObject.targetObject);
+            if (issues == null) return;
+
+            foreach (var issue in issues)
+            {
+                var type = issue.IssueSeverity switch
+                {
+                    ValidationIssue.Severity.Info => InspectorPropertyMessage.MessageType.Info,
+                    ValidationIssue.Severity.Warning => InspectorPropertyMessage.MessageType.Warning,
+                    ValidationIssue.Severity.Error => InspectorPropertyMessage.MessageType.Error,
+                    _ => InspectorPropertyMessage.MessageType.Info
+                };
+                var errorContainer = new InspectorPropertyMessage(issue.Message, type);
+                _objectErrorsContainer.Add(errorContainer);
             }
         }
 

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using FireInspector.Attributes.Properties;
 using FireInspector.Editor.Extensions;
@@ -13,7 +12,7 @@ namespace FireInspector.Editor.Features.Validators
     [UsedImplicitly]
     public class SelectValidator : AttributeValidator<SelectAttribute>
     {
-        public override IEnumerable<ValidationIssue> Validate(SerializedProperty property, SelectAttribute attribute)
+        public override EditorValidationIssue Validate(SerializedProperty property, SelectAttribute attribute)
         {
             var options = SelectUtils.GetSelectOptions(property);
 
@@ -26,7 +25,7 @@ namespace FireInspector.Editor.Features.Validators
                 SerializedPropertyType.ObjectReference
             };
             if (!supportedTypes.Contains(property.propertyType))
-                return new[] { ValidationIssue.NotSupported(property, attribute) };
+                return EditorValidationIssue.NotSupported(property, attribute);
 
             // Make sure that the types of the property and the options match
             var field = property.GetFieldInfo();
@@ -35,16 +34,13 @@ namespace FireInspector.Editor.Features.Validators
             var returnType = method.ReturnType;
             if (returnType != typeof(SelectOptionList<>).MakeGenericType(fieldType))
             {
-                return new[]
-                {
-                    ValidationIssue.Error(property,
-                        $"Get options method should return a SelectOptionList<{fieldType}>.")
-                };
+                return EditorValidationIssue.Error(property,
+                    $"Get options method should return a SelectOptionList<{fieldType}>.");
             }
 
             // If it depends on another property, make sure that property exists
-            var issues = ProjectValidator.ValidatePropertyReference(property, attribute.DependsOn);
-            if (issues.Any()) return issues;
+            var issue = ProjectValidator.ValidatePropertyReference(property, attribute.DependsOn);
+            if (issue != null) return issue;
 
             // Let the RequiredValidator handle this, if the user wants to enforce a selection
             if (property.IsValueEmpty()) return null;
@@ -52,7 +48,7 @@ namespace FireInspector.Editor.Features.Validators
             // If a value *is* set, make sure it's a valid one
             var value = property.boxedValue;
             if (options.FirstOrDefault(o => o.Value.Equals(value)) == null)
-                return new[] { ValidationIssue.Error(property, "Selection is no longer valid.") };
+                return EditorValidationIssue.Error(property, "Selection is no longer valid.");
 
             return null;
         }

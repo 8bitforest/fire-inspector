@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 using FireInspector.Attributes.Validation;
 using FireInspector.Editor.Extensions;
 using FireInspector.Editor.Utils;
+using FireInspector.Validation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -72,15 +73,15 @@ namespace FireInspector.Editor.Validation
             if (component.GetType().Namespace?.StartsWith("UnityEngine") == true)
                 return;
 
-            ValidateSerializableObject(issues, new SerializedObject(component));
+            ValidateSerializedObject(issues, new SerializedObject(component));
         }
 
         private static void ValidateScriptableObject(List<ValidationIssue> issues, ScriptableObject scriptableObject)
         {
-            ValidateSerializableObject(issues, new SerializedObject(scriptableObject));
+            ValidateSerializedObject(issues, new SerializedObject(scriptableObject));
         }
 
-        private static void ValidateSerializableObject(List<ValidationIssue> issues, SerializedObject serializedObject)
+        private static void ValidateSerializedObject(List<ValidationIssue> issues, SerializedObject serializedObject)
         {
             var property = serializedObject.GetIterator();
             var enterChildren = true;
@@ -95,17 +96,50 @@ namespace FireInspector.Editor.Validation
                 var issuesForField = ValidateProperty(property);
                 issues.AddRange(issuesForField);
             }
+
+            issues.AddRange(ValidateObject(serializedObject.targetObject));
         }
 
-        public static List<ValidationIssue> ValidateProperty(SerializedProperty property)
+        public static List<ValidationIssue> ValidateObject(Object obj)
         {
             var issues = new List<ValidationIssue>();
+            if (obj is IFireValidator validator)
+            {
+                var issue = validator.Validate();
+                if (issue != null)
+                {
+                    issues.Add(new ValidationIssue
+                    {
+                        IssueSeverity = issue.IssueSeverity,
+                        Message = issue.Message,
+                        Target = issue.Target ?? obj
+                    });
+                }
+
+                var newIssues = validator.ValidateMany();
+                if (newIssues != null)
+                {
+                    issues.AddRange(newIssues.Select(i => new ValidationIssue
+                    {
+                        IssueSeverity = i.IssueSeverity,
+                        Message = i.Message,
+                        Target = i.Target ?? obj
+                    }));
+                }
+            }
+
+            return issues;
+        }
+
+        public static List<EditorValidationIssue> ValidateProperty(SerializedProperty property)
+        {
+            var issues = new List<EditorValidationIssue>();
             if (!property.IsValid())
                 return issues;
 
             var field = property.GetFieldInfo();
             if (field == null)
-                return new List<ValidationIssue>();
+                return new List<EditorValidationIssue>();
 
             var attributes = field.GetCustomAttributes(typeof(IFireValidationAttribute), true)
                 as IFireValidationAttribute[];
@@ -120,7 +154,7 @@ namespace FireInspector.Editor.Validation
             else if (property.propertyType == SerializedPropertyType.Generic)
             {
                 foreach (var attribute in attributes)
-                    issues.Add(ValidationIssue.NotSupported(property, attribute));
+                    issues.Add(EditorValidationIssue.NotSupported(property, attribute));
             }
             else
             {
@@ -131,43 +165,34 @@ namespace FireInspector.Editor.Validation
             return issues;
         }
 
-        public static List<ValidationIssue> ValidatePropertyAttribute(SerializedProperty property,
+        public static List<EditorValidationIssue> ValidatePropertyAttribute(SerializedProperty property,
             IFireValidationAttribute attribute)
         {
             var validator = FireAttributeTypes.GetAttributeValidator(attribute.GetType());
             if (validator == null)
             {
-                return new List<ValidationIssue>
+                return new List<EditorValidationIssue>
                 {
-                    ValidationIssue.Error(property, $"No validator found for attribute [{attribute.GetType().Name}]")
+                    EditorValidationIssue.Error(property,
+                        $"No validator found for attribute [{attribute.GetType().Name}]")
                 };
             }
 
             var issues = validator.Validate(property, attribute);
-            if (issues != null) return new List<ValidationIssue>(issues);
-            return new List<ValidationIssue>();
+            if (issues != null) return new List<EditorValidationIssue>(issues);
+            return new List<EditorValidationIssue>();
         }
 
-        public static List<ValidationIssue> ValidatePropertyReference(SerializedProperty property, string reference)
+        public static EditorValidationIssue ValidatePropertyReference(SerializedProperty property, string reference)
         {
-            var issues = new List<ValidationIssue>();
             if (string.IsNullOrEmpty(reference))
-                return issues;
+                return null;
 
             var referenceProperty = property.FindSiblingProperty(reference);
             if (referenceProperty == null)
-            {
-                issues.Add(ValidationIssue.Error(property, $"Property '{reference}' not found."));
-                return issues;
-            }
+                return EditorValidationIssue.Error(property, $"Property '{reference}' not found.");
 
-            return issues;
-        }
-
-        private static bool IsSerialized(FieldInfo field)
-        {
-            if (field.IsStatic) return false;
-            return field.IsPublic || field.GetCustomAttribute<SerializeField>() != null;
+            return null;
         }
     }
 }

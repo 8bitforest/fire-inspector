@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using FireInspector.Attributes.Validation;
 using FireInspector.Editor.Extensions;
 using FireInspector.Editor.Validation;
@@ -11,9 +9,9 @@ namespace FireInspector.Editor.Features.Validators
     [UsedImplicitly]
     public class RequiredValidator : AttributeValidator<RequiredAttribute>
     {
-        public override IEnumerable<ValidationIssue> Validate(SerializedProperty property, RequiredAttribute attribute)
+        public override EditorValidationIssue Validate(SerializedProperty property, RequiredAttribute attribute)
         {
-            var error = new[] { ValidationIssue.Error(property, $"{property.displayName} is required.") };
+            var error = EditorValidationIssue.Error(property, $"{property.displayName} is required.");
             var propertyType = property.propertyType;
             if (propertyType == SerializedPropertyType.String)
             {
@@ -29,10 +27,10 @@ namespace FireInspector.Editor.Features.Validators
             }
             else
             {
-                return new[] { ValidationIssue.NotSupported(property, attribute) };
+                return EditorValidationIssue.NotSupported(property, attribute);
             }
 
-            return Enumerable.Empty<ValidationIssue>();
+            return null;
         }
     }
 }
