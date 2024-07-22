@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using FireInspector.Attributes.Properties;
@@ -14,7 +13,7 @@ namespace FireInspector.Editor.Features.Drawers
     [CustomPropertyDrawer(typeof(ComponentSelectAttribute))]
     public class ComponentSelectDrawer : FirePropertyDrawer
     {
-        protected override VisualElement CreateFieldElement(SerializedProperty property, Action onChange)
+        protected override VisualElement CreatePropertyElement(SerializedProperty property)
         {
             var pickerAttribute = (ComponentSelectAttribute)attribute;
             var options = new List<SelectOption>();
@@ -29,7 +28,6 @@ namespace FireInspector.Editor.Features.Drawers
                 property.objectReferenceValue = null;
                 property.serializedObject.ApplyModifiedProperties();
                 componentField.value = null;
-                onChange();
             });
 
             componentField.AddToClassList(BaseField<ObjectField>.alignedFieldUssClassName);
@@ -37,7 +35,6 @@ namespace FireInspector.Editor.Features.Drawers
             {
                 property.objectReferenceValue = evt.newValue?.Value as Component;
                 property.serializedObject.ApplyModifiedProperties();
-                onChange();
             });
 
             var value = property.objectReferenceValue;
