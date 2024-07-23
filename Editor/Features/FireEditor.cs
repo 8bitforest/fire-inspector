@@ -9,6 +9,7 @@ using FireInspector.Editor.Validation;
 using FireInspector.Validation;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace FireInspector.Editor.Features
@@ -72,6 +73,9 @@ namespace FireInspector.Editor.Features
             var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var field in fields)
             {
+                if (field.IsDefined(typeof(HideInInspector), true))
+                    continue;
+                
                 var property = serializedObject.FindProperty(path + field.Name);
                 if (property != null)
                 {
@@ -91,7 +95,7 @@ namespace FireInspector.Editor.Features
             PropertyField propertyField;
 
             // In the future, we could make sure the type doesn't have a custom drawer
-            if (property.hasVisibleChildren)
+            if (property.hasVisibleChildren && !property.isArray)
             {
                 var foldout = new Foldout { text = property.displayName };
                 AddObjectFields(foldout.contentContainer, property.GetGenericValue(), property.propertyPath + ".");
