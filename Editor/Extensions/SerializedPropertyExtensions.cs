@@ -72,6 +72,8 @@ namespace FireInspector.Editor.Extensions
 
         public static SerializedProperty FindSiblingProperty(this SerializedProperty property, string siblingName)
         {
+            if (!property.propertyPath.Contains('.'))
+                return property.serializedObject.FindProperty(siblingName);
             var parentPath = property.propertyPath[..property.propertyPath.LastIndexOf('.')];
             return property.serializedObject.FindProperty(parentPath + "." + siblingName);
         }
